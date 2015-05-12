@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -93,7 +95,7 @@ public class MainActivity extends ActionBarActivity {
                 editor.commit();
 
                 Log.d("debug", "keyCode = " + keyCode);
-                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN){
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
                     send();
                     return true;
                 }
@@ -114,6 +116,47 @@ public class MainActivity extends ActionBarActivity {
         setStoreName();
     }
 
+    private List<JSONObject> locationList;
+
+    private AsyncTask<Object, Void, JSONObject> findAddressTask = new AsyncTask<Object, Void, JSONObject>() {
+        int index;
+
+        // 0: (string)address, 1: (int)index
+        @Override
+        protected JSONObject doInBackground(Object... params) {
+            index = (int) params[1];
+
+            JSONObject jsonObject = Utils.addressToLocation((String) params[0]);
+            return jsonObject;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            Log.d("debug", jsonObject.toString());
+            locationList.add(index, jsonObject);
+        }
+    };
+
+    class FindAddressTask extends AsyncTask<Object, Void, JSONObject> {
+
+        int index;
+
+        // 0: (string)address, 1: (int)index
+        @Override
+        protected JSONObject doInBackground(Object... params) {
+            index = (int) params[1];
+
+            JSONObject jsonObject = Utils.addressToLocation((String) params[0]);
+            return jsonObject;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            Log.d("debug", jsonObject.toString());
+            locationList.add(index, jsonObject);
+        }
+    }
+
     public void setStoreName() {
         ParseQuery<ParseObject> query = new ParseQuery<>("StoreInfo");
         query.findInBackground(new FindCallback<ParseObject>() {
@@ -122,9 +165,16 @@ public class MainActivity extends ActionBarActivity {
                 if (e == null) {
                     String[] storeNames = new String[list.size()];
 
+                    locationList = new ArrayList<JSONObject>(list.size());
+
                     for (int i = 0; i < list.size(); i++) {
                         String name = list.get(i).getString("name");
                         String address = list.get(i).getString("address");
+
+//                        findAddressTask.execute(address, i);
+
+                        FindAddressTask fat = new FindAddressTask();
+                        fat.execute(address, i);
 
                         storeNames[i] = name + "," + address;
                     }
@@ -135,7 +185,6 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
         });
-
     }
 
     public void goToOrderActivity(View view) {
