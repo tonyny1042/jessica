@@ -196,7 +196,16 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private int getDrinkNumber(JSONArray array) {
-        return new Random().nextInt();
+        int sum = 0;
+        for(int i = 0; i < array.length(); i++){
+            try{
+                sum+= array.getJSONObject(i).getInt("m");
+                sum+= array.getJSONObject(i).getInt("l");
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+        }
+        return sum;
     }
 
     private void updateHistory() {
@@ -256,9 +265,9 @@ public class MainActivity extends ActionBarActivity {
 
 
             ParseObject testObject = new ParseObject("Order");
-            testObject.put("note", text);
-            testObject.put("order", orderInfo);
-            testObject.put("storeName", (String) spinner.getSelectedItem());
+            testObject.put("sid", "AP25206");
+            testObject.put("email","tonyny1042@yahoo.com.tw");
+
             testObject.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
