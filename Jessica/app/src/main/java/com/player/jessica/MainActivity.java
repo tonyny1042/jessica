@@ -1,57 +1,64 @@
 package com.player.jessica;
 
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.location.Location;
-import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+        import android.app.ProgressDialog;
+        import android.content.Context;
+        import android.content.DialogInterface;
+        import android.content.Intent;
+        import android.content.SharedPreferences;
+        import android.graphics.Bitmap;
+        import android.location.Location;
+        import android.os.AsyncTask;
+        import android.provider.MediaStore;
+        import android.support.v7.app.ActionBarActivity;
+        import android.os.Bundle;
+        import android.util.Log;
+        import android.view.KeyEvent;
+        import android.view.Menu;
+        import android.view.MenuItem;
+        import android.view.View;
+        import android.widget.ArrayAdapter;
+        import android.widget.Button;
+        import android.widget.CheckBox;
+        import android.widget.CompoundButton;
+        import android.widget.EditText;
+        import android.widget.ImageView;
+        import android.widget.ListView;
+        import android.widget.SimpleAdapter;
+        import android.widget.Spinner;
+        import android.widget.TextView;
+        import android.widget.Toast;
 
-import com.parse.FindCallback;
-import com.parse.Parse;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-import com.parse.SaveCallback;
+        import com.parse.FindCallback;
+        import com.parse.Parse;
+        import com.parse.ParseException;
+        import com.parse.ParseObject;
+        import com.parse.ParseQuery;
+        import com.parse.SaveCallback;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+        import org.json.JSONArray;
+        import org.json.JSONException;
+        import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+        import java.util.ArrayList;
+        import java.util.HashMap;
+        import java.util.List;
+        import java.util.Map;
+        import java.util.Random;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private static final int REQUEST_CODE_ORDER_ACTIVITY = 0;
+    private static final int REQUEST_CODE_TAKE_PHOTO = 1;
+
 
     private Button button;
     private EditText editText;
     private CheckBox checkBox;
     private ListView listView;
     private Spinner spinner;
+    private ImageView imageView;
+
     private ProgressDialog progressDialog;
 
     private SharedPreferences sp;
@@ -74,6 +81,7 @@ public class MainActivity extends ActionBarActivity {
         checkBox = (CheckBox) findViewById(R.id.checkBox);
         listView = (ListView) findViewById(R.id.listView);
         spinner = (Spinner) findViewById(R.id.spinner);
+        imageView = (ImageView) findViewById(R.id.imageView);
 
         button.setText("SUBMIT");
         editText.setText(sp.getString("text", ""));
@@ -265,9 +273,9 @@ public class MainActivity extends ActionBarActivity {
 
 
             ParseObject testObject = new ParseObject("Order");
-            testObject.put("sid", "AP25206");
-            testObject.put("email","tonyny1042@yahoo.com.tw");
-
+            testObject.put("note", text);
+            testObject.put("order", orderInfo);
+            testObject.put("storeName", (String) spinner.getSelectedItem());
             testObject.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
@@ -312,7 +320,7 @@ public class MainActivity extends ActionBarActivity {
         } else if (id == R.id.action_take_photo) {
             Intent intent = new Intent();
             intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_CODE_TAKE_PHOTO);
 
             return true;
         }
@@ -335,6 +343,11 @@ public class MainActivity extends ActionBarActivity {
                 }
 
                 Toast.makeText(this, jsonArrayString, Toast.LENGTH_LONG).show();
+            }
+        } else if (requestCode == REQUEST_CODE_TAKE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                Bitmap bm = data.getParcelableExtra("data");
+                imageView.setImageBitmap(bm);
             }
         }
 
