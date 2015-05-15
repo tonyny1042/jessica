@@ -15,7 +15,10 @@ public class JessicaApplication extends Application {
         super.onCreate();
         // Enable Local Datastore.
 
-        Parse.initialize(this, "fgKEQGJ5j5hQRbC3Mwytop2zyR70MWyoSYUlpM9S", "cpaz9soGN8tfBG9VpeqjGBn4Oe3xza7DNepqIbbO");
+        Parse.enableLocalDatastore(this);
+
+        Parse.initialize(this, "Y1mI8UilGKM4h6Ya1SutbLDnh6khPcoqy3pHvglV", "b4Bib9eqIplpVZDprnzIsaOF7RWuglFQvQoaBCxQ");
+
 
 
     }

@@ -1,7 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Jessica</string>
 
+    <string name="app_name">Jessica</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_order">OrderActivity</string>
+    <string name="title_activity_oder_detail">OderDetailActivity</string>
+    <string name="title_activity_order_detail">OrderDetailActivity</string>
+
 </resources>
