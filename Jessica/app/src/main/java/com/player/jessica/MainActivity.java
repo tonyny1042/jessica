@@ -1,58 +1,57 @@
 package com.player.jessica;
 
-        import android.app.ProgressDialog;
-        import android.content.Context;
-        import android.content.DialogInterface;
-        import android.content.Intent;
-        import android.content.SharedPreferences;
-        import android.graphics.Bitmap;
-        import android.location.Location;
-        import android.os.AsyncTask;
-        import android.provider.MediaStore;
-        import android.support.v7.app.ActionBarActivity;
-        import android.os.Bundle;
-        import android.util.Log;
-        import android.view.KeyEvent;
-        import android.view.Menu;
-        import android.view.MenuItem;
-        import android.view.View;
-        import android.widget.AdapterView;
-        import android.widget.ArrayAdapter;
-        import android.widget.Button;
-        import android.widget.CheckBox;
-        import android.widget.CompoundButton;
-        import android.widget.EditText;
-        import android.widget.ImageView;
-        import android.widget.ListView;
-        import android.widget.SimpleAdapter;
-        import android.widget.Spinner;
-        import android.widget.TextView;
-        import android.widget.Toast;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.location.Location;
+import android.os.AsyncTask;
+import android.provider.MediaStore;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
-        import com.parse.FindCallback;
-        import com.parse.Parse;
-        import com.parse.ParseException;
-        import com.parse.ParseFile;
-        import com.parse.ParseObject;
-        import com.parse.ParseQuery;
-        import com.parse.SaveCallback;
+import com.parse.FindCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
-        import org.json.JSONArray;
-        import org.json.JSONException;
-        import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-        import java.util.ArrayList;
-        import java.util.HashMap;
-        import java.util.List;
-        import java.util.Map;
-        import java.util.Random;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private static final int REQUEST_CODE_ORDER_ACTIVITY = 0;
     private static final int REQUEST_CODE_TAKE_PHOTO = 1;
-
 
     private Button button;
     private EditText editText;
@@ -68,6 +67,7 @@ public class MainActivity extends ActionBarActivity {
 
     private JSONArray orderInfo;
     private Bitmap bm;
+    private List<ParseObject> orderObjects;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,8 +117,28 @@ public class MainActivity extends ActionBarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                ParseObject order = orderObjects.get(position);
+
+                String note = order.getString("note");
+                String storeName = order.getString("storeName");
+                ParseFile file = order.getParseFile("photo");
+                JSONArray array = order.getJSONArray("order");
+
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, OrderDetailActivity.class);
+
+                try {
+                    intent.putExtra("note", note);
+                    intent.putExtra("storeName", storeName);
+                    if (file != null) {
+                        intent.putExtra("file", file.getData());
+                    }
+                    intent.putExtra("array",array.toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
                 startActivity(intent);
             }
         });
@@ -240,6 +260,8 @@ public class MainActivity extends ActionBarActivity {
             public void done(List<ParseObject> list, ParseException e) {
                 if (e == null) {
 
+                    orderObjects = list;
+
                     List<Map<String, String>> data = new ArrayList<>();
 
                     for (ParseObject object : list) {
@@ -275,47 +297,30 @@ public class MainActivity extends ActionBarActivity {
             text = "*****";
         }
 
-        try {
-            JSONObject all = new JSONObject();
-            all.put("note", text);
-            all.put("order", orderInfo);
-            all.put("storeName", (String) spinner.getSelectedItem());
+        ParseObject orderObject = new ParseObject("Order");
+        orderObject.put("note", text);
+        orderObject.put("order", orderInfo);
+        orderObject.put("storeName", (String) spinner.getSelectedItem());
 
-            Utils.writeFile(this, "history", all.toString() + "\n");
-
-
-            ParseObject testObject = new ParseObject("Order");
-            testObject.put("note", text);
-            testObject.put("order", orderInfo);
-            testObject.put("storeName", (String) spinner.getSelectedItem());
-
-            if (bm != null) {
-                   ParseFile file = new ParseFile("photo.png", Utils.bitmapToBytes(bm));
-                   testObject.put("photo", file);
-            }
-
-            testObject.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-                        Toast.makeText(MainActivity.this, "saved", Toast.LENGTH_LONG).show();
-                    } else {
-                        e.printStackTrace();
-                    }
-                    Log.d("debug", "line200");
-                }
-            });
-
-            Log.d("debug", "line204");
-
-            editText.setText("");
-
-
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (bm != null) {
+            ParseFile file = new ParseFile("photo.png", Utils.bitmapToBytes(bm));
+            orderObject.put("photo", file);
         }
 
-        updateHistory();
+        orderObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    Toast.makeText(MainActivity.this, "saved", Toast.LENGTH_LONG).show();
+                } else {
+                    e.printStackTrace();
+                }
+                updateHistory();
+            }
+        });
+
+        editText.setText("");
+
     }
 
     @Override
