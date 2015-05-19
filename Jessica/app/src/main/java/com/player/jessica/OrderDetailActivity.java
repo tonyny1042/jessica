@@ -10,6 +10,9 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -44,6 +47,9 @@ public class OrderDetailActivity extends ActionBarActivity {
         Log.d("debug", "note:" + note + ", storeName" + storeName );
         webView.loadUrl(getStaticMapURL(storeName));
         webView.setWebViewClient(new WebViewClient());
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        GoogleMap googleMap = mapFragment.getMap();
     }
 
     public String getStaticMapURL(String storeName) {
